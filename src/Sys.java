@@ -1,4 +1,10 @@
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
+import static com.mongodb.client.model.Filters.eq;
+
 
 import org.bson.Document;
 
@@ -6,6 +12,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Updates;
 
 import depot.*; 
 
@@ -14,6 +21,8 @@ public class Sys {
 	private final Scanner myScanner = new Scanner(System.in);
 	private MongoDatabase db;
 	private String currentUser;
+	private Driver currentDriver;
+	private Manager currentManager;
 
 
 	// NOTE : Constructor
@@ -38,7 +47,7 @@ public class Sys {
 				break;
 			}
 			
-			System.out.print("- Password (create one if it's your 1st time): ");
+			System.out.print("- Password: ");
 			password = myScanner.nextLine();
 			
 			login(username, password);
@@ -116,10 +125,12 @@ public class Sys {
 	public void registerManager() {
 		System.out.print("\nRegister username for manager: ");
 		String username = myScanner.nextLine().toLowerCase();
+		System.out.print("Register password for manager: ");
+		String password = myScanner.nextLine().toLowerCase();
 		
 		try {
-			MongoCollection managers = db.getCollection("Managers");
-			Document managerDoc = new Document("username", username);
+			MongoCollection<Document> managers = db.getCollection("Managers");
+			Document managerDoc = new Document("username", username).append("password", password);
 			managers.insertOne(managerDoc);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -131,10 +142,12 @@ public class Sys {
 	public void registerDriver() {
 		System.out.print("\nRegister username for driver: ");
 		String username = myScanner.nextLine().toLowerCase();
+		System.out.print("Register password for driver: ");
+		String password = myScanner.nextLine();
 		
 		try {
-			MongoCollection drivers = db.getCollection("Drivers");
-			Document driverDoc = new Document("username", username);
+			MongoCollection<Document> drivers = db.getCollection("Drivers");
+			Document driverDoc = new Document("username", username).append("password", password);
 			drivers.insertOne(driverDoc);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -152,9 +165,11 @@ public class Sys {
 	
 	public void manager() {
 		
-		// ToDo : If user not manager exit function
+		if(!currentUser.equals("manager")) {
+			return;
+		}
 		
-		System.out.println("Hello {name}, to your manager's dashboard");
+		System.out.println("\nHello " + currentManager.getUsername()+ ", welcome to your manager's dashboard");
 		
 		String choice;
 		do {
@@ -170,7 +185,7 @@ public class Sys {
 					
 			switch(choice) {
 				case "1":
-					// ToDo : Send to setup work schedule function
+					workSchedule();
 					break;
 				case "2":
 					// ToDo : Send to move vehicle function
@@ -184,12 +199,42 @@ public class Sys {
 		return;
 	}
 	
+	public void workSchedule() {
+
+		System.out.print("\nEnter driver username: ");
+		String driver = myScanner.nextLine().toLowerCase();
+		
+		System.out.print("Enter client's name: ");
+		String client = myScanner.nextLine().toLowerCase();
+		
+		System.out.print("Enter the start date in the format yyyy-mm-dd: ");
+		String startDateText = myScanner.nextLine().toLowerCase();
+		
+		System.out.print("Enter the end date in the format yyyy-mm-dd: ");
+		String endDateText = myScanner.nextLine().toLowerCase();
+		
+		
+		/*LocalDate startDate = LocalDate.parse(startDateText);
+		LocalDate endDate = LocalDate.parse(endDateText);
+		
+		Document myDriver;
+		MongoCollection<Document> drivers = db.getCollection("Drivers");
+		myDriver = drivers.find(eq("username", driver)).first();
+		
+		System.out.println(startDate + " " + endDate);*/
+		
+		// ToDo : insertOne to document (work)
+		
+	}
+	
 	
 	public void driver() {
 		
-		// ToDo : If user not driver exit function
+		if(!currentUser.equals("manager")) {
+			return;
+		}
 
-		System.out.println("Hello {name}, to your driver's dashboard");
+		System.out.println("Hello " + currentManager.getUsername() + ", welcome to your driver's dashboard");
 		
 		String choice;
 		do {
@@ -232,8 +277,24 @@ public class Sys {
 		}
 		
 		try {
-			// ToDo : Compare user name and password to value in database
-			// ToDo : if match, return current user
+			// NOTE : Log manager in and instantiate manager class
+			MongoCollection<Document> managers = db.getCollection("Managers");
+			Document myManager = managers.find(eq("username", username)).first();
+			if(myManager != null && myManager.get("password").equals(password)) {
+				currentUser = "manager";
+				currentManager = new Manager(username, password);
+				return;
+			}
+
+			// NOTE : Log driver in and instantiate driver class
+			MongoCollection<Document> drivers = db.getCollection("Drivers");
+			Document myDriver = drivers.find(eq("username", username)).first();
+			if (myDriver != null && myDriver.get("password").equals(password)) {
+				currentUser = "driver";
+				currentDriver = new Driver(username, password);
+				return;
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();		
 		}
