@@ -239,11 +239,11 @@ public class Sys {
 	
 	public void driver() {
 		
-		if(!currentUser.equals("manager")) {
+		if(!currentUser.equals("driver")) {
 			return;
 		}
 
-		System.out.println("Hello " + currentManager.getUsername() + ", welcome to your driver's dashboard");
+		System.out.println("\nHello " + currentDriver.getUsername() + ", welcome to your driver's dashboard");
 		
 		String choice;
 		do {
@@ -258,7 +258,7 @@ public class Sys {
 					
 			switch(choice) {
 				case "1":
-					// ToDo : Send to view work schedule function
+					viewWork();
 					break;
 				case "2":
 					logout();
@@ -270,11 +270,25 @@ public class Sys {
 	}
 	
 	public void viewWork() {
-		//Document myDriver = drivers.find(eq("username", "pablo")).first();
+		MongoCollection<Document> drivers = db.getCollection("Drivers");
+
+		Document myDriver = drivers.find(eq("username", currentDriver.getUsername())).first();
 		
 	    //JSONObject obj = (JSONObject) myDriver.get("work");
 	    
-	    //ArrayList myArr = (ArrayList) myDriver.get("work"); 
+	    ArrayList myArr = (ArrayList) myDriver.get("work"); 
+	    
+	    if(myArr.size() > 0) {
+	    	System.out.println("\n--- Scheduled Work ---");
+	    }
+	    
+	    for (Object work : myArr) {
+	    	Document doc = (Document) work;
+	    	System.out.printf("Client: %s, Start date: %s, End date: %s%n", doc.get("client"), doc.get("startDate"), doc.get("endDate"));
+	    	
+	    	
+	    	
+	    }
 		
 	    //System.out.println(myArr.size());
 		
