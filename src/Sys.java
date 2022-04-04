@@ -2,9 +2,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 import static com.mongodb.client.model.Filters.eq;
-
+import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.set;
 
 import org.bson.Document;
 
@@ -12,7 +15,12 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
+
+
+import org.json.JSONObject;
+
 
 import depot.*; 
 
@@ -208,22 +216,23 @@ public class Sys {
 		String client = myScanner.nextLine().toLowerCase();
 		
 		System.out.print("Enter the start date in the format yyyy-mm-dd: ");
-		String startDateText = myScanner.nextLine().toLowerCase();
+		String startDate = myScanner.nextLine().toLowerCase();
 		
 		System.out.print("Enter the end date in the format yyyy-mm-dd: ");
-		String endDateText = myScanner.nextLine().toLowerCase();
+		String endDate = myScanner.nextLine().toLowerCase();
 		
 		
-		/*LocalDate startDate = LocalDate.parse(startDateText);
-		LocalDate endDate = LocalDate.parse(endDateText);
 		
-		Document myDriver;
 		MongoCollection<Document> drivers = db.getCollection("Drivers");
-		myDriver = drivers.find(eq("username", driver)).first();
 		
-		System.out.println(startDate + " " + endDate);*/
+		Document work = new Document("client", client)
+		        .append("startDate", startDate)
+		        .append("endDate", endDate);
 		
-		// ToDo : insertOne to document (work)
+		drivers.updateOne(eq("username", driver),
+				Updates.addToSet("work", work),
+				new UpdateOptions().upsert(true)
+			);
 		
 	}
 	
@@ -260,7 +269,22 @@ public class Sys {
 		return;
 	}
 	
-	
+	public void viewWork() {
+		//Document myDriver = drivers.find(eq("username", "pablo")).first();
+		
+	    //JSONObject obj = (JSONObject) myDriver.get("work");
+	    
+	    //ArrayList myArr = (ArrayList) myDriver.get("work"); 
+		
+	    //System.out.println(myArr.size());
+		
+		/*for (String work : obj.keys()) {
+			
+		}*/
+		
+		
+		// ToDo : insertOne to document (work)
+	}
 	
 	
 	
