@@ -1,5 +1,15 @@
 package depot;
+import static com.mongodb.client.model.Filters.eq;
+
+import java.time.LocalDate;
 import java.util.Date;
+
+import org.bson.Document;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
 public class Vehicle {
 	
@@ -7,12 +17,6 @@ public class Vehicle {
 	String Model;
 	int Weight;
 	String regNo;
-	boolean availablity;
-	WorkSchedule schedule;
-	
-	public Vehicle() {
-	
-	}
 
 	public Vehicle(String make, String model, int weight, String regNo) {
 		super();
@@ -21,14 +25,27 @@ public class Vehicle {
 		Weight = weight;
 		this.regNo = regNo;
 	}
+	
+	public Vehicle(String regNo) {
+		super();
+		this.regNo = regNo;
+	}
 
 	public boolean isAvailable() {
-		return this.availablity;
+		MongoClient client =  MongoClients.create("mongodb+srv://some-user:NOTsecurePWD@cluster0.zkqlf.mongodb.net/eDepot?retryWrites=true&w=majority");
+		MongoDatabase db = client.getDatabase("eDepot");
+		MongoCollection<Document> vehicles = db.getCollection("Vehicles");
+		String endDateStr = (String) vehicles.find(eq("regNo", this.regNo)).first().get("endDate");
+		
+		LocalDate endDate = LocalDate.parse(endDateStr);
+		
+		if(LocalDate.now().isAfter(endDate)) {
+			return true;
+		} 
+		
+		return false;
 	}
 		
-	public void setSchedule(String client, Date startDate, Date endDate) {
-		this.schedule = new WorkSchedule(client,startDate,endDate);
-	}
 
 	public String getMake() {
 		return Make;
@@ -62,12 +79,5 @@ public class Vehicle {
 		this.regNo = regNo;
 	}
 
-	public boolean isAvailablity() {
-		return availablity;
-	}
-
-	public void setAvailablity(boolean availablity) {
-		this.availablity = availablity;
-	}
 		
 }
